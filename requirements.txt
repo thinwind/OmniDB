@@ -1,7 +1,7 @@
-Django
+Django == 4.2
 CherryPy
 social-auth-app-django
-django-auth-ldap
+# django-auth-ldap
 pyscrypt
 pyaes
 openpyxl

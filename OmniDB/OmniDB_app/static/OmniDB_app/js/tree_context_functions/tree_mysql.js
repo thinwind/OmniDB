@@ -1093,7 +1093,10 @@ function refreshTreeMysql(node) {
         getDatabaseObjectsMysql(node);
     } else if (node.tag.type == 'role_list') {
         getRolesMysql(node);
-    } /*else if (node.tag.type == 'trigger_list') {
+    } else if (node.tag.type == 'save_info'){
+        saveInfoMysql(node);
+    }
+     /*else if (node.tag.type == 'trigger_list') {
         getTriggersMysql(node);
     } else if (node.tag.type == 'triggerfunction_list') {
         getTriggerFunctionsMysql(node);
@@ -1337,6 +1340,15 @@ function getDatabaseObjectsMysql(node) {
             database: v_connTabControl.selectedTab.tag.selectedDatabase
         }, 'cm_procedures');
     node_functions.createChildNode('', true,
+        'node-spin', null, null);
+        
+    var node_saveinfos=node.createChildNode('Save Info',
+        false, 'fas node-all fa-save node-procedure-list', {
+            type: 'save_info',
+            num_functions: 0,
+            database: v_connTabControl.selectedTab.tag.selectedDatabase
+        }, 'cm_actions');
+        node_saveinfos.createChildNode('', true,
         'node-spin', null, null);
 
     afterNodeOpenedCallbackMysql(node);
@@ -2960,4 +2972,23 @@ function mysqlTerminateBackend(p_row) {
 
         });
 
+}
+
+
+function saveInfoMysql(node){
+    execAjax('/save_info_mysql/',
+        JSON.stringify({
+            "p_database_index": v_connTabControl.selectedTab.tag.selectedDatabaseIndex,
+            "p_tab_id": v_connTabControl.selectedTab.id,
+            "p_schema": node.parent.text
+        }),
+        function(p_return) {
+            showAlert(p_return['v_data']);
+            node.collapseNode();
+        },
+        function(p_return) {
+            nodeOpenError(p_return, node);
+        },
+        'box',
+        false);
 }
