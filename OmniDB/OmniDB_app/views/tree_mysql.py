@@ -9,7 +9,10 @@ from django.core import serializers
 from django.http import HttpResponse, JsonResponse
 from django.template import loader
 from OmniDB_app.include.Session import Session
+from OmniDB_app.utils import file_util
 from OmniDB_app.views.memory_objects import *
+
+from OmniDB.custom_settings import DB_INFO_FILE_DIR
 
 
 @user_authenticated
@@ -126,44 +129,46 @@ def get_properties(request, v_database):
 @user_authenticated
 @database_required(p_check_timeout=True, p_open_connection=True)
 def get_tables(request, v_database):
-
     v_return = {}
     v_return["v_data"] = ""
     v_return["v_error"] = False
     v_return["v_error_id"] = -1
 
     json_object = json.loads(request.POST.get("data", None))
-    v_database_index = json_object["p_database_index"]
     v_schema = json_object["p_schema"]
-    v_tab_id = json_object["p_tab_id"]
 
     v_list_tables = []
-
     try:
-        v_tables = v_database.QueryTables(False, v_schema)
-        for v_table in v_tables.Rows:
-            v_table_data = {
-                "v_name": v_table["table_name"],
-                "v_has_primary_keys": v_database.v_has_primary_keys,
-                "v_has_foreign_keys": v_database.v_has_foreign_keys,
-                "v_has_uniques": v_database.v_has_uniques,
-                "v_has_indexes": v_database.v_has_indexes,
-                "v_has_checks": v_database.v_has_checks,
-                "v_has_excludes": v_database.v_has_excludes,
-                "v_has_rules": v_database.v_has_rules,
-                "v_has_triggers": v_database.v_has_triggers,
-                "v_has_partitions": v_database.v_has_partitions,
-                "v_has_statistics": v_database.v_has_statistics,
-            }
-            v_list_tables.append(v_table_data)
+        v_list_tables = get_tables_data(v_database, v_schema)
     except Exception as exc:
         v_return["v_data"] = {"password_timeout": True, "message": str(exc)}
         v_return["v_error"] = True
         return JsonResponse(v_return)
 
     v_return["v_data"] = v_list_tables
-
     return JsonResponse(v_return)
+
+
+def get_tables_data(v_database, v_schema):
+    v_list_tables = []
+    v_tables = v_database.QueryTables(False, v_schema)
+    for v_table in v_tables.Rows:
+        v_table_data = {
+            "v_name": v_table["table_name"],
+            "v_has_primary_keys": v_database.v_has_primary_keys,
+            "v_has_foreign_keys": v_database.v_has_foreign_keys,
+            "v_has_uniques": v_database.v_has_uniques,
+            "v_has_indexes": v_database.v_has_indexes,
+            "v_has_checks": v_database.v_has_checks,
+            "v_has_excludes": v_database.v_has_excludes,
+            "v_has_rules": v_database.v_has_rules,
+            "v_has_triggers": v_database.v_has_triggers,
+            "v_has_partitions": v_database.v_has_partitions,
+            "v_has_statistics": v_database.v_has_statistics,
+        }
+        v_list_tables.append(v_table_data)
+
+    return v_list_tables
 
 
 @user_authenticated
@@ -731,20 +736,12 @@ def get_views(request, v_database):
     v_return["v_error_id"] = -1
 
     json_object = json.loads(request.POST.get("data", None))
-    v_database_index = json_object["p_database_index"]
     v_schema = json_object["p_schema"]
-    v_tab_id = json_object["p_tab_id"]
 
     v_list_tables = []
 
     try:
-        v_tables = v_database.QueryViews(False, v_schema)
-        for v_table in v_tables.Rows:
-            v_table_data = {
-                "v_name": v_table["table_name"],
-                "v_has_triggers": v_database.v_has_triggers,
-            }
-            v_list_tables.append(v_table_data)
+        v_list_tables = get_view_data(v_database, v_schema)
     except Exception as exc:
         v_return["v_data"] = {"password_timeout": True, "message": str(exc)}
         v_return["v_error"] = True
@@ -753,6 +750,18 @@ def get_views(request, v_database):
     v_return["v_data"] = v_list_tables
 
     return JsonResponse(v_return)
+
+
+def get_view_data(v_database, v_schema):
+    v_list_views = []
+    v_views = v_database.QueryViews(False, v_schema)
+    for v_table in v_views.Rows:
+        v_table_data = {
+            "v_name": v_table["table_name"],
+            "v_has_triggers": v_database.v_has_triggers,
+        }
+        v_list_views.append(v_table_data)
+    return v_list_views
 
 
 @user_authenticated
@@ -930,5 +939,23 @@ def save_info(request, v_database):
     v_return["v_error_id"] = -1
 
     json_object = json.loads(request.POST.get("data", None))
+    v_schema = json_object["p_schema"]
 
+    db_info = {}
+
+    # 查询表信息
+    table_list = get_tables_data(v_database, v_schema)
+    db_info["tables"] = table_list
+
+    # 查询view信息并保存
+    view_list = get_view_data(v_database, v_schema)
+    db_info["views"] = view_list
+
+    # db_info 转成json
+    db_info_content = json.dumps(db_info, indent=4)
+    file_path = file_util.save_txt_file(
+        DB_INFO_FILE_DIR, v_schema, "json", db_info_content
+    )
+
+    v_return["v_data"] = file_path
     return JsonResponse(v_return)
