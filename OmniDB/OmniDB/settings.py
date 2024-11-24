@@ -134,10 +134,13 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
+LANGUAGE_CODE = 'zh-hans'
 USE_I18N = True
 USE_L10N = True
+# settings.py
+# 设置时区为上海
+TIME_ZONE = 'Asia/Shanghai'
+# 启用时区支持
 USE_TZ = True
 
 PATH = custom_settings.PATH

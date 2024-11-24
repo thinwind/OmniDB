@@ -2,6 +2,8 @@ import json
 import sys
 from datetime import datetime
 
+from requests import get
+
 import OmniDB_app.include.Spartacus as Spartacus
 import OmniDB_app.include.Spartacus.Database as Database
 import OmniDB_app.include.Spartacus.Utils as Utils
@@ -206,6 +208,19 @@ def get_columns(request, v_database):
     v_return["v_data"] = v_list_columns
 
     return JsonResponse(v_return)
+
+def get_columns_data(v_database, v_table, v_schema):
+    v_list_columns = []
+    v_columns = v_database.QueryTablesFields(v_table, False, v_schema)
+    for v_column in v_columns.Rows:
+        v_column_data = {
+            "v_column_name": v_column["column_name"],
+            "v_data_type": v_column["data_type"],
+            "v_data_length": v_column["data_length"],
+            "v_nullable": v_column["nullable"],
+        }
+        v_list_columns.append(v_column_data)
+    return v_list_columns
 
 
 @user_authenticated
@@ -950,6 +965,12 @@ def save_info(request, v_database):
     # 查询view信息并保存
     view_list = get_view_data(v_database, v_schema)
     db_info["views"] = view_list
+
+    # 查询列信息
+    for table in table_list:
+        columns = get_columns_data(v_database, table["v_name"], v_schema)
+        table["columns"] = columns
+
 
     # db_info 转成json
     db_info_content = json.dumps(db_info, indent=4)
