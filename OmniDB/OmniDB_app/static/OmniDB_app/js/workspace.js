@@ -104,6 +104,9 @@ $(function () {
   // Creating the snippets panel.
   v_connTabControl.tag.createSnippetPanel();
 
+  // 添加比对页面
+  v_connTabControl.tag.createFileCompPanel();
+
   // Updating explain component choice.
   updateExplainComponent();
 

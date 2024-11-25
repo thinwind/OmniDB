@@ -412,7 +412,7 @@ function editCellData(p_ht, p_row, p_col, p_content, p_can_alter) {
 		v_edit_modal.setAttribute('id','div_edit_content');
 		v_edit_modal.setAttribute('tabindex','-1');
 		v_edit_modal.setAttribute('role','dialog');
-		v_edit_modal.setAttribute('aria-hidden','true');
+		// v_edit_modal.setAttribute('aria-hidden','true');
 		v_edit_modal.classList = 'modal fade';
 
 		document.body.append(v_edit_modal);
