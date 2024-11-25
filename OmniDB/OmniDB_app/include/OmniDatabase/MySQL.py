@@ -124,14 +124,14 @@ class MySQL:
             p_conn_string,
         )
 
-        self.v_has_schema = False
-        self.v_has_functions = False
-        self.v_has_procedures = False
+        self.v_has_schema = True
+        self.v_has_functions = True
+        self.v_has_procedures = True
         self.v_has_sequences = False
-        self.v_has_primary_keys = False
-        self.v_has_foreign_keys = False
-        self.v_has_uniques = False
-        self.v_has_indexes = False
+        self.v_has_primary_keys = True
+        self.v_has_foreign_keys = True
+        self.v_has_uniques = True
+        self.v_has_indexes = True
         self.v_has_checks = False
         self.v_has_excludes = False
         self.v_has_rules = False
@@ -139,7 +139,7 @@ class MySQL:
         self.v_has_partitions = False
         self.v_has_statistics = False
 
-        self.v_has_update_rule = False
+        self.v_has_update_rule = True
         self.v_can_rename_table = True
         self.v_rename_table_command = (
             "alter table #p_table_name# rename to #p_new_table_name#"

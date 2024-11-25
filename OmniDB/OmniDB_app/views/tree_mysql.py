@@ -970,6 +970,58 @@ def save_info(request, v_database):
     for table in table_list:
         columns = get_columns_data(v_database, table["v_name"], v_schema)
         table["columns"] = columns
+    
+    # 查询view ddl
+    for view in view_list:
+        view["ddl"] = v_database.GetViewDefinition(view["v_name"], v_schema)
+    
+    # 查询主键信息
+    for table in table_list:
+        list_pk =[]
+        pks = v_database.QueryTablesPrimaryKeys(table["v_name"], False, v_schema)
+        for v_pk in pks.Rows:
+            pk_data = {}
+            pk_data["name"] = v_pk["constraint_name"]
+            pk_columns = []
+            pk_data["columns"] = pk_columns
+            list_pk.append(pk_data)
+
+            # 查询主键列信息
+            v_pk_columns = v_database.QueryTablesPrimaryKeysColumns(
+                v_pk["constraint_name"], table["v_name"], False, v_schema
+            )
+            for v_pk_column in v_pk_columns.Rows:
+                pk_columns.append(v_pk_column["column_name"])
+
+        table["pks"] = list_pk
+
+    # 查询外键信息
+    for table in table_list:
+        list_fk =[]
+        fks = v_database.QueryTablesForeignKeys(table["v_name"], False, v_schema)
+        for v_fk in fks.Rows:
+            fk_data = {}
+            fk_data["name"] = v_fk["constraint_name"]
+            fk_data["r_table_name"] = v_fk["r_table_name"]
+            fk_data["delete_rule"] = v_fk["delete_rule"]
+            fk_data["update_rule"] = v_fk["update_rule"]
+            fk_columns = []
+            fk_data["columns"] = fk_columns
+            list_fk.append(fk_data)
+
+            # 查询外键列信息
+            v_fk_columns = v_database.QueryTablesForeignKeysColumns(
+                v_fk["constraint_name"], table["v_name"], False, v_schema
+            )
+            for v_fk_column in v_fk_columns.Rows:
+                col_name ={
+                    "column_name": v_fk_column["column_name"],
+                    "r_column_name": v_fk_column["r_column_name"]
+                }
+                fk_columns.append(col_name)
+                
+
+        table["fks"] = list_fk
 
 
     # db_info 转成json
