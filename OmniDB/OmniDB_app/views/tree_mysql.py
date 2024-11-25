@@ -1023,6 +1023,71 @@ def save_info(request, v_database):
 
         table["fks"] = list_fk
 
+    # 查询唯一约束信息
+    for table in table_list:
+        list_unique =[]
+        uniques = v_database.QueryTablesUniques(table["v_name"], False, v_schema)
+        for v_unique in uniques.Rows:
+            unique_data = {}
+            unique_data["name"] = v_unique["constraint_name"]
+            unique_columns = []
+            unique_data["columns"] = unique_columns
+            list_unique.append(unique_data)
+
+            # 查询唯一约束列信息
+            v_unique_columns = v_database.QueryTablesUniquesColumns(
+                v_unique["constraint_name"], table["v_name"], False, v_schema
+            )
+            for v_unique_column in v_unique_columns.Rows:
+                unique_columns.append(v_unique_column["column_name"])
+
+        table["uniques"] = list_unique
+
+    # 查询索引信息
+    for table in table_list:
+        list_index =[]
+        indexes = v_database.QueryTablesIndexes(table["v_name"], False, v_schema)
+        for v_index in indexes.Rows:
+            index_data = {}
+            index_data["name"] = v_index["index_name"]
+            index_data["uniqueness"] = v_index["uniqueness"]
+            index_columns = []
+            index_data["columns"] = index_columns
+            list_index.append(index_data)
+
+            # 查询索引列信息
+            v_index_columns = v_database.QueryTablesIndexesColumns(
+                v_index["index_name"], table["v_name"], False, v_schema
+            )
+            for v_index_column in v_index_columns.Rows:
+                index_columns.append(v_index_column["column_name"])
+
+        table["indexes"] = list_index
+    
+    # 查询函数信息
+    v_functions = v_database.QueryFunctions(False, v_schema)
+    list_functions = []
+    for v_function in v_functions.Rows:
+        function_data = {}
+        function_data["name"] = v_function["name"]
+        function_data["id"] = v_function["id"]
+        # 查询函数定义
+        function_data["definition"] = v_database.GetFunctionDefinition(v_function["id"])
+        list_functions.append(function_data)
+    db_info["functions"] = list_functions
+
+    # 查询存储过程信息
+    v_procedures = v_database.QueryProcedures(False, v_schema)
+    list_procedures = []
+    for v_procedure in v_procedures.Rows:
+        procedure_data = {}
+        procedure_data["name"] = v_procedure["name"]
+        procedure_data["id"] = v_procedure["id"]
+        # 查询存储过程定义
+        procedure_data["definition"] = v_database.GetProcedureDefinition(v_procedure["id"])
+        list_procedures.append(procedure_data)
+
+    db_info["procedures"] = list_procedures
 
     # db_info 转成json
     db_info_content = json.dumps(db_info, indent=4)
