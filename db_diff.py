@@ -61,6 +61,18 @@ class DatabaseDiff:
             if table1_ddl == table2_ddl:
                 self.common_tabls.append(table_name)
                 continue
+            
+            table_diff_info = None
+
+            def init_table_diff_info():
+                global table_diff_info
+                if table_diff_info is None:
+                    table_diff_info = {}
+                    table_diff_info["table_name"] = table_name
+                    table_diff_info["diff_columns"] = []
+                    table_diff_info["diff_indices"] = []
+                    table_diff_info["diff_foreign_keys"] = []
+                    self.diff_tables.append(table_diff_info)
 
             # ddl不同,不代表表结构不同
             # 比较列
@@ -75,21 +87,56 @@ class DatabaseDiff:
                 col2 = colums2[cursor2]
                 if self.ease_compare(col1["v_column_name"], col2["v_column_name"]):
                     # 同一列
-                    if not self.ease_compare(col1["v_data_type"], col2["v_data_type"]):
-                        self.diff_tables.append(table_name)
-                        break
-                    
+                    col1_def = col1['v_data_type'] + " " + col1['v_data_length'] + " " + col1['v_nullable']
+                    col2_def = col2['v_data_type'] + " " + col2['v_data_length'] + " " + col2['v_nullable']
+                    if not self.ease_compare(col1_def, col2_def):
+                        init_table_diff_info()
+                        table_diff_info["diff_columns"].append({
+                            "col_name": col1["v_column_name"],
+                            "col1_def": col1_def,
+                            "col2_def": col2_def
+                        })
+                        
                     # 一起下移
                     cursor1 += 1
                     cursor2 += 1
                 elif colums1[cursor1]["v_column_name"] < colums2[cursor2]["v_column_name"]:
-                    self.diff_tables.append(table_name)
-                    break
+                    # 表1有,表2没有
+                    init_table_diff_info()
+                    table_diff_info["diff_columns"].append({
+                        "col_name": col1["v_column_name"],
+                        "col1_def": col1['v_data_type'] + " " + col1['v_data_length'] + " " + col1['v_nullable'],
+                        "col2_def": "Not Exist"
+                    })
+                    cursor1 += 1
                 else:
-                    self.diff_tables.append(table_name)
-                    break
-            
-                
+                    # 表2有,表1没有
+                    init_table_diff_info()
+                    table_diff_info["diff_columns"].append({
+                        "col_name": col2["v_column_name"],
+                        "col1_def": "Not Exist",
+                        "col2_def": col2['v_data_type'] + " " + col2['v_data_length'] + " " + col2['v_nullable']
+                    })
+                    cursor2 += 1
+            # 处理剩余的列
+            while cursor1 < len(colums1):
+                col1 = colums1[cursor1]
+                init_table_diff_info()
+                table_diff_info["diff_columns"].append({
+                    "col_name": col1["v_column_name"],
+                    "col1_def": col1['v_data_type'] + " " + col1['v_data_length'] + " " + col1['v_nullable'],
+                    "col2_def": "Not Exist"
+                })
+                cursor1 += 1
+            while cursor2 < len(colums2):
+                col2 = colums2[cursor2]
+                init_table_diff_info()
+                table_diff_info["diff_columns"].append({
+                    "col_name": col2["v_column_name"],
+                    "col1_def": "Not Exist",
+                    "col2_def": col2['v_data_type'] + " " + col2['v_data_length'] + " " + col2['v_nullable']
+                })
+                cursor2 += 1
 
 
             # 比较索引(包含了主键和唯一索引)
