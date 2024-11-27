@@ -1,18 +1,9 @@
 import json
-import sys
-from datetime import datetime
 
-from requests import get
 
-import OmniDB_app.include.Spartacus as Spartacus
-import OmniDB_app.include.Spartacus.Database as Database
-import OmniDB_app.include.Spartacus.Utils as Utils
-from django.core import serializers
-from django.http import HttpResponse, JsonResponse
-from django.template import loader
-from OmniDB_app.include.Session import Session
+from django.http import JsonResponse
 from OmniDB_app.utils import file_util
-from OmniDB_app.views.memory_objects import *
+from OmniDB_app.views.memory_objects import user_authenticated, database_required
 
 from OmniDB.custom_settings import DB_INFO_FILE_DIR
 
@@ -26,9 +17,9 @@ def get_tree_info(request, v_database):
     v_return["v_error"] = False
     v_return["v_error_id"] = -1
 
-    json_object = json.loads(request.POST.get("data", None))
-    v_database_index = json_object["p_database_index"]
-    v_tab_id = json_object["p_tab_id"]
+    # json_object = json.loads(request.POST.get("data", None))
+    # v_database_index = json_object["p_database_index"]
+    # v_tab_id = json_object["p_tab_id"]
 
     try:
         v_return["v_data"] = {
@@ -102,9 +93,9 @@ def get_properties(request, v_database):
     v_return["v_error_id"] = -1
 
     json_object = json.loads(request.POST.get("data", None))
-    v_database_index = json_object["p_database_index"]
+    # v_database_index = json_object["p_database_index"]
     v_data = json_object["p_data"]
-    v_tab_id = json_object["p_tab_id"]
+    # v_tab_id = json_object["p_tab_id"]
 
     v_list_properties = []
     v_ddl = ""
@@ -183,10 +174,10 @@ def get_columns(request, v_database):
     v_return["v_error_id"] = -1
 
     json_object = json.loads(request.POST.get("data", None))
-    v_database_index = json_object["p_database_index"]
+    # v_database_index = json_object["p_database_index"]
     v_table = json_object["p_table"]
     v_schema = json_object["p_schema"]
-    v_tab_id = json_object["p_tab_id"]
+    # v_tab_id = json_object["p_tab_id"]
 
     v_list_columns = []
 
@@ -233,10 +224,10 @@ def get_pk(request, v_database):
     v_return["v_error_id"] = -1
 
     json_object = json.loads(request.POST.get("data", None))
-    v_database_index = json_object["p_database_index"]
+    # v_database_index = json_object["p_database_index"]
     v_table = json_object["p_table"]
     v_schema = json_object["p_schema"]
-    v_tab_id = json_object["p_tab_id"]
+    # v_tab_id = json_object["p_tab_id"]
 
     v_list_pk = []
 
@@ -266,11 +257,11 @@ def get_pk_columns(request, v_database):
     v_return["v_error_id"] = -1
 
     json_object = json.loads(request.POST.get("data", None))
-    v_database_index = json_object["p_database_index"]
+    # v_database_index = json_object["p_database_index"]
     v_pkey = json_object["p_key"]
     v_table = json_object["p_table"]
     v_schema = json_object["p_schema"]
-    v_tab_id = json_object["p_tab_id"]
+    # v_tab_id = json_object["p_tab_id"]
 
     v_list_pk = []
 
@@ -302,10 +293,10 @@ def get_fks(request, v_database):
     v_return["v_error_id"] = -1
 
     json_object = json.loads(request.POST.get("data", None))
-    v_database_index = json_object["p_database_index"]
+    # v_database_index = json_object["p_database_index"]
     v_table = json_object["p_table"]
     v_schema = json_object["p_schema"]
-    v_tab_id = json_object["p_tab_id"]
+    # v_tab_id = json_object["p_tab_id"]
 
     v_list_fk = []
 
@@ -338,11 +329,11 @@ def get_fks_columns(request, v_database):
     v_return["v_error_id"] = -1
 
     json_object = json.loads(request.POST.get("data", None))
-    v_database_index = json_object["p_database_index"]
+    # v_database_index = json_object["p_database_index"]
     v_fkey = json_object["p_fkey"]
     v_table = json_object["p_table"]
     v_schema = json_object["p_schema"]
-    v_tab_id = json_object["p_tab_id"]
+    # v_tab_id = json_object["p_tab_id"]
 
     v_list_fk = []
 
@@ -378,10 +369,10 @@ def get_uniques(request, v_database):
     v_return["v_error_id"] = -1
 
     json_object = json.loads(request.POST.get("data", None))
-    v_database_index = json_object["p_database_index"]
+    # v_database_index = json_object["p_database_index"]
     v_table = json_object["p_table"]
     v_schema = json_object["p_schema"]
-    v_tab_id = json_object["p_tab_id"]
+    # v_tab_id = json_object["p_tab_id"]
 
     v_list_uniques = []
 
@@ -411,11 +402,11 @@ def get_uniques_columns(request, v_database):
     v_return["v_error_id"] = -1
 
     json_object = json.loads(request.POST.get("data", None))
-    v_database_index = json_object["p_database_index"]
+    # v_database_index = json_object["p_database_index"]
     v_unique = json_object["p_unique"]
     v_table = json_object["p_table"]
     v_schema = json_object["p_schema"]
-    v_tab_id = json_object["p_tab_id"]
+    # v_tab_id = json_object["p_tab_id"]
 
     v_list_uniques = []
 
@@ -447,10 +438,10 @@ def get_indexes(request, v_database):
     v_return["v_error_id"] = -1
 
     json_object = json.loads(request.POST.get("data", None))
-    v_database_index = json_object["p_database_index"]
+    # v_database_index = json_object["p_database_index"]
     v_table = json_object["p_table"]
     v_schema = json_object["p_schema"]
-    v_tab_id = json_object["p_tab_id"]
+    # v_tab_id = json_object["p_tab_id"]
 
     v_list_indexes = []
 
@@ -481,11 +472,11 @@ def get_indexes_columns(request, v_database):
     v_return["v_error_id"] = -1
 
     json_object = json.loads(request.POST.get("data", None))
-    v_database_index = json_object["p_database_index"]
+    # v_database_index = json_object["p_database_index"]
     v_index = json_object["p_index"]
     v_table = json_object["p_table"]
     v_schema = json_object["p_schema"]
-    v_tab_id = json_object["p_tab_id"]
+    # v_tab_id = json_object["p_tab_id"]
 
     v_list_indexes = []
 
@@ -516,9 +507,9 @@ def get_databases(request, v_database):
     v_return["v_error"] = False
     v_return["v_error_id"] = -1
 
-    json_object = json.loads(request.POST.get("data", None))
-    v_database_index = json_object["p_database_index"]
-    v_tab_id = json_object["p_tab_id"]
+    # json_object = json.loads(request.POST.get("data", None))
+    # v_database_index = json_object["p_database_index"]
+    # v_tab_id = json_object["p_tab_id"]
 
     v_list_databases = []
 
@@ -546,9 +537,9 @@ def get_roles(request, v_database):
     v_return["v_error"] = False
     v_return["v_error_id"] = -1
 
-    json_object = json.loads(request.POST.get("data", None))
-    v_database_index = json_object["p_database_index"]
-    v_tab_id = json_object["p_tab_id"]
+    # json_object = json.loads(request.POST.get("data", None))
+    # v_database_index = json_object["p_database_index"]
+    # v_tab_id = json_object["p_tab_id"]
 
     v_list_roles = []
 
@@ -577,9 +568,9 @@ def get_functions(request, v_database):
     v_return["v_error_id"] = -1
 
     json_object = json.loads(request.POST.get("data", None))
-    v_database_index = json_object["p_database_index"]
+    # v_database_index = json_object["p_database_index"]
     v_schema = json_object["p_schema"]
-    v_tab_id = json_object["p_tab_id"]
+    # v_tab_id = json_object["p_tab_id"]
 
     v_list_functions = []
 
@@ -608,10 +599,10 @@ def get_function_fields(request, v_database):
     v_return["v_error_id"] = -1
 
     json_object = json.loads(request.POST.get("data", None))
-    v_database_index = json_object["p_database_index"]
+    # v_database_index = json_object["p_database_index"]
     v_function = json_object["p_function"]
     v_schema = json_object["p_schema"]
-    v_tab_id = json_object["p_tab_id"]
+    # v_tab_id = json_object["p_tab_id"]
 
     v_list_fields = []
 
@@ -640,9 +631,9 @@ def get_function_definition(request, v_database):
     v_return["v_error_id"] = -1
 
     json_object = json.loads(request.POST.get("data", None))
-    v_database_index = json_object["p_database_index"]
+    # v_database_index = json_object["p_database_index"]
     v_function = json_object["p_function"]
-    v_tab_id = json_object["p_tab_id"]
+    # v_tab_id = json_object["p_tab_id"]
 
     try:
         v_return["v_data"] = v_database.GetFunctionDefinition(v_function)
@@ -664,9 +655,9 @@ def get_procedures(request, v_database):
     v_return["v_error_id"] = -1
 
     json_object = json.loads(request.POST.get("data", None))
-    v_database_index = json_object["p_database_index"]
+    # v_database_index = json_object["p_database_index"]
     v_schema = json_object["p_schema"]
-    v_tab_id = json_object["p_tab_id"]
+    # v_tab_id = json_object["p_tab_id"]
 
     v_list_functions = []
 
@@ -695,10 +686,10 @@ def get_procedure_fields(request, v_database):
     v_return["v_error_id"] = -1
 
     json_object = json.loads(request.POST.get("data", None))
-    v_database_index = json_object["p_database_index"]
+    # v_database_index = json_object["p_database_index"]
     v_function = json_object["p_procedure"]
     v_schema = json_object["p_schema"]
-    v_tab_id = json_object["p_tab_id"]
+    # v_tab_id = json_object["p_tab_id"]
 
     v_list_fields = []
 
@@ -727,9 +718,9 @@ def get_procedure_definition(request, v_database):
     v_return["v_error_id"] = -1
 
     json_object = json.loads(request.POST.get("data", None))
-    v_database_index = json_object["p_database_index"]
+    # v_database_index = json_object["p_database_index"]
     v_function = json_object["p_procedure"]
-    v_tab_id = json_object["p_tab_id"]
+    # v_tab_id = json_object["p_tab_id"]
 
     try:
         v_return["v_data"] = v_database.GetProcedureDefinition(v_function)
@@ -789,10 +780,10 @@ def get_views_columns(request, v_database):
     v_return["v_error_id"] = -1
 
     json_object = json.loads(request.POST.get("data", None))
-    v_database_index = json_object["p_database_index"]
+    # v_database_index = json_object["p_database_index"]
     v_table = json_object["p_table"]
     v_schema = json_object["p_schema"]
-    v_tab_id = json_object["p_tab_id"]
+    # v_tab_id = json_object["p_tab_id"]
 
     v_list_columns = []
 
@@ -825,10 +816,10 @@ def get_view_definition(request, v_database):
     v_return["v_error_id"] = -1
 
     json_object = json.loads(request.POST.get("data", None))
-    v_database_index = json_object["p_database_index"]
+    # v_database_index = json_object["p_database_index"]
     v_view = json_object["p_view"]
     v_schema = json_object["p_schema"]
-    v_tab_id = json_object["p_tab_id"]
+    # v_tab_id = json_object["p_tab_id"]
 
     try:
         v_return["v_data"] = v_database.GetViewDefinition(v_view, v_schema)
@@ -850,12 +841,13 @@ def kill_backend(request, v_database):
     v_return["v_error_id"] = -1
 
     json_object = json.loads(request.POST.get("data", None))
-    v_database_index = json_object["p_database_index"]
+    # v_database_index = json_object["p_database_index"]
     v_pid = json_object["p_pid"]
-    v_tab_id = json_object["p_tab_id"]
+    # v_tab_id = json_object["p_tab_id"]
 
     try:
         v_data = v_database.Terminate(v_pid)
+        v_return["v_data"] = v_data
     except Exception as exc:
         v_return["v_data"] = {"password_timeout": True, "message": str(exc)}
         v_return["v_error"] = True
@@ -874,8 +866,8 @@ def template_select(request, v_database):
     v_return["v_error_id"] = -1
 
     json_object = json.loads(request.POST.get("data", None))
-    v_database_index = json_object["p_database_index"]
-    v_tab_id = json_object["p_tab_id"]
+    # v_database_index = json_object["p_database_index"]
+    # v_tab_id = json_object["p_tab_id"]
     v_table = json_object["p_table"]
     v_schema = json_object["p_schema"]
 
@@ -901,8 +893,8 @@ def template_insert(request, v_database):
     v_return["v_error_id"] = -1
 
     json_object = json.loads(request.POST.get("data", None))
-    v_database_index = json_object["p_database_index"]
-    v_tab_id = json_object["p_tab_id"]
+    # v_database_index = json_object["p_database_index"]
+    # v_tab_id = json_object["p_tab_id"]
     v_table = json_object["p_table"]
     v_schema = json_object["p_schema"]
 
@@ -928,8 +920,8 @@ def template_update(request, v_database):
     v_return["v_error_id"] = -1
 
     json_object = json.loads(request.POST.get("data", None))
-    v_database_index = json_object["p_database_index"]
-    v_tab_id = json_object["p_tab_id"]
+    # v_database_index = json_object["p_database_index"]
+    # v_tab_id = json_object["p_tab_id"]
     v_table = json_object["p_table"]
     v_schema = json_object["p_schema"]
 
@@ -975,6 +967,16 @@ def save_info(request, v_database):
     for view in view_list:
         view["ddl"] = v_database.GetViewDefinition(view["v_name"], v_schema)
     
+    # 查询table ddl
+    for table in table_list:
+        table["ddl"] = v_database.GetDDL(
+            v_schema, table["v_name"], table["v_name"], 'table'
+        )
+        
+    # 查询表数据量
+    for table in table_list:
+        table["count"] = v_database.ExecuteScalar(f"SELECT COUNT(*) FROM {table['v_name']}")
+
     # 查询主键信息
     for table in table_list:
         list_pk =[]
