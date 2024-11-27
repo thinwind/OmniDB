@@ -88,6 +88,11 @@ class DatabaseDiff:
 
             # 比较外键
             table_diff_info["diff_foreign_keys"] = self.compare_foreign_keys(table1["fks"],table2["fks"])
+            
+            if len(table_diff_info["diff_columns"]) > 0 or len(table_diff_info["diff_indices"]) > 0 or len(table_diff_info["diff_foreign_keys"]) > 0:
+                self.diff_tables.append(table_diff_info)
+            else:
+                self.common_tables.append(table_name)
 
     def compare_foreign_keys(self, fks1, fks2):
         fks1.sort(key=lambda x: x["name"])
