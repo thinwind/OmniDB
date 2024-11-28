@@ -56,10 +56,114 @@ class DatabaseDiff:
         self.compare_common_table()
 
         # 比较视图
-        # TODO
+        self.compare_views()
 
         # 比较存储过程
-        # TODO
+        self.compare_procedures()
+
+    def compare_procedures(self):
+        # 比较存储过程
+        self.procedures_only_in_db1 = []
+        self.procedures_only_in_db2 = []
+        procedures1 = self.db1["procedures"]
+        procedures2 = self.db2["procedures"]
+        procedures1.sort(key=lambda x: x["name"])
+        procedures2.sort(key=lambda x: x["name"])
+
+        self.procedures_only_in_db1 = []
+        self.procedures_only_in_db2 = []
+        self.diff_procedures = []
+        self.common_procedures = []
+
+        cursor1 = 0
+        cursor2 = 0
+        while cursor1 < len(procedures1) and cursor2 < len(procedures2):
+            procedure1 = procedures1[cursor1]
+            procedure2 = procedures2[cursor2]
+            if self.ease_compare(procedure1["name"], procedure2["name"]):
+                # 同一存储过程
+                if not self.ease_compare(procedure1["definition"], procedure2["definition"]):
+                    self.diff_procedures.append(
+                        {
+                            "procedure_name": procedure1["name"],
+                            "procedure1_def": procedure1["definition"],
+                            "procedure2_def": procedure2["definition"],
+                        }
+                    )
+                else:
+                    self.common_procedures.append(procedure1["name"])
+                cursor1 += 1
+                cursor2 += 1
+            elif procedure1["name"] < procedure2["name"]:
+                # 存储过程1有,存储过程2没有
+                self.procedures_only_in_db1.append(procedure1["name"])
+                cursor1 += 1
+            else:
+                # 存储过程2有,存储过程1没有
+                self.procedures_only_in_db2.append(procedure2["name"])
+                cursor2 += 1
+        # 处理剩余的存储过程
+        while cursor1 < len(procedures1):
+            procedure1 = procedures1[cursor1]
+            self.procedures_only_in_db1.append(procedure1["name"])
+            cursor1 += 1
+
+        while cursor2 < len(procedures2):
+            procedure2 = procedures2[cursor2]
+            self.procedures_only_in_db2.append(procedure2["name"])
+    
+    def compare_views(self):
+        # 比较视图
+        self.views_only_in_db1 = []
+        self.views_only_in_db2 = []
+        self.views_in_both_db = []
+        views1 = self.db1["views"]
+        views2 = self.db2["views"]
+        views1.sort(key=lambda x: x["v_name"])
+        views2.sort(key=lambda x: x["v_name"])
+
+        self.views_only_in_db1 = []
+        self.views_only_in_db2 = []
+        self.diff_views = []
+        self.common_views = []
+
+        cursor1 = 0
+        cursor2 = 0
+        while cursor1 < len(views1) and cursor2 < len(views2):
+            view1 = views1[cursor1]
+            view2 = views2[cursor2]
+            if self.ease_compare(view1["v_name"], view2["v_name"]):
+                # 同一视图
+                if not self.ease_compare(view1["ddl"], view2["ddl"]):
+                    self.diff_views.append(
+                        {
+                            "view_name": view1["v_name"],
+                            "view1_ddl": view1["ddl"],
+                            "view2_ddl": view2["ddl"],
+                        }
+                    )
+                else:
+                    self.common_views.append(view1["v_name"])
+                cursor1 += 1
+                cursor2 += 1
+            elif view1["v_name"] < view2["v_name"]:
+                # 视图1有,视图2没有
+                self.views_only_in_db1.append(view1["v_name"])
+                cursor1 += 1
+            else:
+                # 视图2有,视图1没有
+                self.views_only_in_db2.append(view2["v_name"])
+                cursor2 += 1
+        # 处理剩余的视图
+        while cursor1 < len(views1):
+            view1 = views1[cursor1]
+            self.views_only_in_db1.append(view1["v_name"])
+            cursor1 += 1
+
+        while cursor2 < len(views2):
+            view2 = views2[cursor2]
+            self.views_only_in_db2.append(view2["v_name"])
+            cursor2 += 1
 
     # 比较共同表
     def compare_common_table(self):
@@ -171,7 +275,8 @@ class DatabaseDiff:
     def compare_indices(self, indices1, indices2):
         indices1.sort(key=lambda x: x["name"])
         indices2.sort(key=lambda x: x["name"])
-        cursor1 = 0, cursor2 = 0
+        cursor1 = 0
+        cursor2 = 0
         diff_indices = []
         while cursor1 < len(indices1) and cursor2 < len(indices2):
             index1 = indices1[cursor1]
