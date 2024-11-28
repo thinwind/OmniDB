@@ -12,8 +12,6 @@ This module is used to compare the difference between two databases.
 
 import json
 
-from django import db
-
 
 def read_db_file(file_path):
     # 读取 JSON 文件
@@ -82,7 +80,9 @@ class DatabaseDiff:
             procedure2 = procedures2[cursor2]
             if self.ease_compare(procedure1["name"], procedure2["name"]):
                 # 同一存储过程
-                if not self.ease_compare(procedure1["definition"], procedure2["definition"]):
+                if not self.ease_compare(
+                    procedure1["definition"], procedure2["definition"]
+                ):
                     self.diff_procedures.append(
                         {
                             "procedure_name": procedure1["name"],
@@ -111,7 +111,7 @@ class DatabaseDiff:
         while cursor2 < len(procedures2):
             procedure2 = procedures2[cursor2]
             self.procedures_only_in_db2.append(procedure2["name"])
-    
+
     def compare_views(self):
         # 比较视图
         self.views_only_in_db1 = []
@@ -183,17 +183,25 @@ class DatabaseDiff:
 
             table_diff_info = {}
             table_diff_info["table_name"] = table_name
-            
+
             # DDL不同,比较列信息
             table_diff_info["diff_columns"] = self.compare_coloumns(table1, table2)
 
             # 比较索引(包含了主键和唯一索引)
-            table_diff_info["diff_indices"] = self.compare_indices(table1["indexes"],table2["indexes"])
+            table_diff_info["diff_indices"] = self.compare_indices(
+                table1["indexes"], table2["indexes"]
+            )
 
             # 比较外键
-            table_diff_info["diff_foreign_keys"] = self.compare_foreign_keys(table1["fks"],table2["fks"])
-            
-            if len(table_diff_info["diff_columns"]) > 0 or len(table_diff_info["diff_indices"]) > 0 or len(table_diff_info["diff_foreign_keys"]) > 0:
+            table_diff_info["diff_foreign_keys"] = self.compare_foreign_keys(
+                table1["fks"], table2["fks"]
+            )
+
+            if (
+                len(table_diff_info["diff_columns"]) > 0
+                or len(table_diff_info["diff_indices"]) > 0
+                or len(table_diff_info["diff_foreign_keys"]) > 0
+            ):
                 self.diff_tables.append(table_diff_info)
             else:
                 self.common_tables.append(table_name)
@@ -211,16 +219,12 @@ class DatabaseDiff:
                 # 同一外键
                 fk1_def = self.build_foreign_key_signature(fk1)
                 fk2_def = self.build_foreign_key_signature(fk2)
-                
+
                 if not self.ease_compare(fk1_def, fk2_def):
                     diff_fks.append(
-                        {
-                            "fk_name": fk1["name"],
-                            "fk1_def": fk1_def,
-                            "fk2_def": fk2_def
-                        }
+                        {"fk_name": fk1["name"], "fk1_def": fk1_def, "fk2_def": fk2_def}
                     )
-                    
+
                 # 一起下移
                 cursor1 += 1
                 cursor2 += 1
@@ -240,7 +244,7 @@ class DatabaseDiff:
                     {
                         "fk_name": fk2["name"],
                         "fk1_def": "Not Exist",
-                        "fk2_def":  self.build_foreign_key_signature(fk2),
+                        "fk2_def": self.build_foreign_key_signature(fk2),
                     }
                 )
                 cursor2 += 1
@@ -265,12 +269,17 @@ class DatabaseDiff:
                 }
             )
             cursor2 += 1
+        return diff_fks
 
     def build_foreign_key_signature(self, fk):
-        fk1_cols = [item["column_name"]+","+ item['r_column_name'] for item in fk["columns"]]
-        fk1_def = f"{fk['ref_table']}:{fk['delete_rule']}:{fk['update_rule']}:" + ",".join(sorted(fk1_cols))
+        fk1_cols = [
+            item["column_name"] + "," + item["r_column_name"] for item in fk["columns"]
+        ]
+        fk1_def = (
+            f"{fk['r_table_name']}:{fk['delete_rule']}:{fk['update_rule']}:"
+            + ",".join(sorted(fk1_cols))
+        )
         return fk1_def
-    
 
     def compare_indices(self, indices1, indices2):
         indices1.sort(key=lambda x: x["name"])
@@ -290,10 +299,10 @@ class DatabaseDiff:
                         {
                             "index_name": index1["name"],
                             "index1_def": index1_def,
-                            "index2_def": index2_def
+                            "index2_def": index2_def,
                         }
                     )
-                    
+
                 # 一起下移
                 cursor1 += 1
                 cursor2 += 1
@@ -338,7 +347,7 @@ class DatabaseDiff:
                 }
             )
             cursor2 += 1
-        
+
         return diff_indices
 
     def build_index_signature(self, index1):
@@ -442,6 +451,8 @@ class DatabaseDiff:
             )
             cursor2 += 1
 
+        return diff_columns
+
     def find_table_by_name(self, tables, table_name):
         for table in tables:
             if self.ease_compare(table["v_name"], table_name):
@@ -450,7 +461,7 @@ class DatabaseDiff:
         return None
 
     # 查找的单边表
-    def find_single_side_table(self, tables1, tables2):
+    def find_single_side_table(self):
         # 比较两个数据库的差异
         tables1 = self.db1["tables"]
         tables2 = self.db2["tables"]
@@ -461,3 +472,20 @@ class DatabaseDiff:
         self.tables_only_in_db1 = list(db1_table_names - db2_table_names)
         self.tables_only_in_db2 = list(db2_table_names - db1_table_names)
         self.tables_in_both_db = list(db1_table_names & db2_table_names)
+
+
+if __name__ == '__main__':
+    file_dir = '/home/sany/tmp/omnidb-files/'
+    db1 = read_db_file(file_dir + "my_test_24-11-28-110158_00.json")
+    db2 = read_db_file(file_dir + "my_test_24-11-28-112640_01.json")
+
+    db_diff = DatabaseDiff(db1, db2)
+    db_diff.compare()
+
+    db_diff.db1=None
+    db_diff.db2=None
+    diff_file_path = file_dir + "my_test_24-11-28-110158_00-24-11-28-112640_01_diff.json"
+    with open(diff_file_path, "w", encoding="UTF-8") as f:
+        f.write(json.dumps(db_diff,indent=4,default=lambda x: x.__dict__))
+    
+    print(f"diff result has been saved to {diff_file_path}")
