@@ -6,7 +6,6 @@ from django.urls import re_path as url
 from . import views
 
 base_urlpatterns = [
-    path("social-auth/", include("social_django.urls", namespace="social")),
     url(r"^upload/$", views.plugins.upload_view, name="sign_in"),
     url(r"^long_polling/$", views.polling.long_polling, name="long_polling"),
     url(r"^create_request/$", views.polling.create_request, name="create_request"),

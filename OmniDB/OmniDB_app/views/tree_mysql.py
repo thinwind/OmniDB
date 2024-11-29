@@ -1,5 +1,5 @@
 import json
-
+from math import log
 
 from django.http import JsonResponse
 from OmniDB_app.utils import file_util
@@ -7,6 +7,9 @@ from OmniDB_app.views.memory_objects import user_authenticated, database_require
 
 from OmniDB.custom_settings import DB_INFO_FILE_DIR
 
+import logging
+
+logger = logging.getLogger("OmniDB_app")
 
 @user_authenticated
 @database_required(p_check_timeout=True, p_open_connection=True)
@@ -951,35 +954,47 @@ def save_info(request, v_database):
     db_info = {}
 
     # 查询表信息
+    logger.info("------------------>开始查询表信息<------------------")
     table_list = get_tables_data(v_database, v_schema)
     db_info["tables"] = table_list
 
     # 查询view信息并保存
+    
     view_list = get_view_data(v_database, v_schema)
     db_info["views"] = view_list
 
     # 查询列信息
+    logger.info("------------------>开始查询列信息<------------------")
     for table in table_list:
+        logger.info(f"[column-def] 查询表{table['v_name']}的列信息")
         columns = get_columns_data(v_database, table["v_name"], v_schema)
         table["columns"] = columns
     
     # 查询view ddl
+    logger.info("------------------>开始查询view ddl<------------------")
     for view in view_list:
+        logger.info(f"[view-def] 查询view{view['v_name']}的ddl")
         view["ddl"] = v_database.GetViewDefinition(view["v_name"], v_schema)
     
     # 查询table ddl
+    logger.info("------------------>开始查询table ddl<------------------")
     for table in table_list:
+        logger.info(f"[table-def] 查询表{table['v_name']}的ddl")
         table["ddl"] = v_database.GetDDL(
             v_schema, table["v_name"], table["v_name"], 'table'
         )
         
     # 查询表数据量
+    logger.info("------------------>开始查询表数据量<------------------")
     for table in table_list:
+        logger.info(f"[table-cnt] 查询表{table['v_name']}的数据量")
         table["count"] = v_database.ExecuteScalar(f"SELECT COUNT(*) FROM {table['v_name']}")
 
     # 查询主键信息
+    logger.info("------------------>开始查询主键信息<------------------")
     for table in table_list:
         list_pk =[]
+        logger.info(f"[pk-def] 查询表{table['v_name']}的主键信息")
         pks = v_database.QueryTablesPrimaryKeys(table["v_name"], False, v_schema)
         for v_pk in pks.Rows:
             pk_data = {}
@@ -998,8 +1013,10 @@ def save_info(request, v_database):
         table["pks"] = list_pk
 
     # 查询外键信息
+    logger.info("------------------>开始查询外键信息<------------------")
     for table in table_list:
         list_fk =[]
+        logger.info(f"[fk-def] 查询表{table['v_name']}的外键信息")
         fks = v_database.QueryTablesForeignKeys(table["v_name"], False, v_schema)
         for v_fk in fks.Rows:
             fk_data = {}
@@ -1046,8 +1063,10 @@ def save_info(request, v_database):
         table["uniques"] = list_unique
 
     # 查询索引信息
+    logger.info("------------------>开始查询索引信息<------------------")
     for table in table_list:
         list_index =[]
+        logger.info(f"[table-idx] 查询表{table['v_name']}的索引信息")
         indexes = v_database.QueryTablesIndexes(table["v_name"], False, v_schema)
         for v_index in indexes.Rows:
             index_data = {}
@@ -1067,6 +1086,7 @@ def save_info(request, v_database):
         table["indexes"] = list_index
     
     # 查询函数信息
+    logger.info("------------------>开始查询函数信息<------------------")
     v_functions = v_database.QueryFunctions(False, v_schema)
     list_functions = []
     for v_function in v_functions.Rows:
@@ -1079,6 +1099,7 @@ def save_info(request, v_database):
     db_info["functions"] = list_functions
 
     # 查询存储过程信息
+    logger.info("------------------>开始查询存储过程信息<------------------")
     v_procedures = v_database.QueryProcedures(False, v_schema)
     list_procedures = []
     for v_procedure in v_procedures.Rows:
@@ -1092,10 +1113,15 @@ def save_info(request, v_database):
     db_info["procedures"] = list_procedures
 
     # db_info 转成json
+    logger.info("------------------>db_info转成json<------------------")
     db_info_content = json.dumps(db_info, indent=4)
+
+    # 保存到文件
+    logger.info("------------------>开始写入到文件<------------------")
     file_path = file_util.save_txt_file(
         DB_INFO_FILE_DIR, v_schema, "json", db_info_content
     )
+    logger.info(f"文件保存成功，路径为{file_path}")
 
     v_return["v_data"] = file_path
     return JsonResponse(v_return)

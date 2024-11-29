@@ -1,6 +1,6 @@
 Django == 4.2
 CherryPy
-social-auth-app-django
+# social-auth-app-django
 # django-auth-ldap
 pyscrypt
 pyaes
