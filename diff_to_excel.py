@@ -11,3 +11,8 @@ Copyright (c) 2024, Yehua Shang
 
 '''
 
+from openpyxl import Workbook,load_workbook,cell
+
+# 将数据量先写入到sheet中
+def write_table_count(sheet,db_info):
+    
