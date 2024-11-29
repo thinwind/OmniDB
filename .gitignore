@@ -17,3 +17,4 @@ omnidb_app/package-lock.json
 *.DS_Store
 *.idea
 .omnidb
+omnidb-files/

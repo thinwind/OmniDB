@@ -14,4 +14,4 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False
 
-DB_INFO_FILE_DIR = "/home/sany/tmp/omnidb-files/"
+DB_INFO_FILE_DIR = f"{os.path.dirname(HOME_DIR)}/omnidb-files/"

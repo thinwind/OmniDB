@@ -195,7 +195,7 @@ LOGGING = {
         'console_omnidb_app':{
             'class':'logging.StreamHandler',
             'formatter': 'standard',
-            'level':'ERROR',
+            'level':'INFO',
         },
     },
     'loggers': {

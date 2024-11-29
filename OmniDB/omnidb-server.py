@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import configparser
 import importlib
 
 # Parameters
@@ -11,35 +12,10 @@ import shutil
 import string
 import sys
 
+import OmniDB_app.include.OmniDatabase as OmniDatabase
+import OmniDB_app.include.Spartacus.Utils as Utils
+
 import OmniDB.custom_settings
-
-import socket
-
-import cherrypy
-import django.contrib.admin.apps
-import django.contrib.auth.apps
-import django.contrib.auth.context_processors
-import django.contrib.auth.middleware
-import django.contrib.auth.password_validation
-import django.contrib.contenttypes.apps
-import django.contrib.messages.apps
-import django.contrib.messages.context_processors
-import django.contrib.messages.middleware
-import django.contrib.sessions.apps
-import django.contrib.sessions.middleware
-import django.contrib.sessions.serializers
-import django.contrib.staticfiles
-import django.contrib.staticfiles.apps
-import django.template.defaulttags
-import django.template.loader_tags
-import django.template.loaders
-import django.views.defaults
-import OmniDB_app.urls
-
-from django.contrib.sessions.backends.db import SessionStore
-from django.core.handlers.wsgi import WSGIHandler
-
-from OmniDB import startup
 
 OmniDB.custom_settings.DEV_MODE = False
 OmniDB.custom_settings.DESKTOP_MODE = False
@@ -216,10 +192,10 @@ else:
         OmniDB.custom_settings.HOME_DIR = os.path.join(
             os.path.expanduser("~"), ".omnidb", "omnidb-app"
         )
-    else:
-        OmniDB.custom_settings.HOME_DIR = os.path.join(
-            os.path.expanduser("~"), ".omnidb", "omnidb-server"
-        )
+    # else:
+    #     OmniDB.custom_settings.HOME_DIR = os.path.join(
+    #         os.path.expanduser("~"), ".omnidb", "omnidb-server"
+    #     )
 
     if not os.path.exists(OmniDB.custom_settings.HOME_DIR):
         print("Creating home directory.", flush=True)
@@ -249,7 +225,7 @@ module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
 omnidb_settings = module
 
-if options.host is not None:
+if options.host != None:
     listening_address = options.host
 else:
     if hasattr(omnidb_settings, "LISTENING_ADDRESS"):
@@ -257,7 +233,7 @@ else:
     else:
         listening_address = "127.0.0.1"
 
-if options.port is not None:
+if options.port != None:
     listening_port = options.port
 else:
     if hasattr(omnidb_settings, "LISTENING_PORT"):
@@ -329,6 +305,8 @@ from OmniDB_app.models.main import *
 
 print("""Running database migrations...""", flush=True)
 logger.info("""Running Database Migrations...""")
+
+from os import devnull
 
 try:
     call_command("migrate", interactive=False)
@@ -497,7 +475,7 @@ if options.migratedb:
         migration_main(dbfile, True, logger)
 
 # Maintenance performed, exit before starting webserver
-if maintenance_action:
+if maintenance_action == True:
     sys.exit()
 
 # This line was reached, so not a maintenance run, lock HOME DIR if not on Windows
@@ -516,6 +494,43 @@ if platform.system() != "Windows":
         )
         sys.exit()
 
+import html.parser
+import http.cookies
+import random
+import socket
+import time
+import urllib.request
+
+import cherrypy
+import django.contrib.admin.apps
+import django.contrib.auth.apps
+import django.contrib.auth.context_processors
+import django.contrib.auth.middleware
+import django.contrib.auth.password_validation
+import django.contrib.contenttypes.apps
+import django.contrib.messages.apps
+import django.contrib.messages.context_processors
+import django.contrib.messages.middleware
+import django.contrib.sessions.apps
+import django.contrib.sessions.middleware
+import django.contrib.sessions.serializers
+import django.contrib.staticfiles
+import django.contrib.staticfiles.apps
+import django.template.defaulttags
+import django.template.loader_tags
+import django.template.loaders
+import django.views.defaults
+import OmniDB_app.urls
+import social_core.backends.github
+import social_django
+import social_django.config
+import social_django.models
+import social_django.strategy
+import social_django.urls
+from django.contrib.sessions.backends.db import SessionStore
+from django.core.handlers.wsgi import WSGIHandler
+
+from OmniDB import startup
 
 # if platform.system() != 'Darwin':
 #     import ldap
