@@ -24,6 +24,8 @@ def read_db_file(file_path):
 
 class DatabaseDiff:
     def __init__(self, db1, db2):
+        self.db1_file = db1["file_path"]
+        self.db2_file = db2["file_path"]
         self.db1 = db1
         self.db2 = db2
 
@@ -482,9 +484,11 @@ if __name__ == '__main__':
     db_diff = DatabaseDiff(db1, db2)
     db_diff.compare()
 
-    db_diff.db1=None
-    db_diff.db2=None
-    diff_file_path = file_dir + "my_test_24-11-28-110158_00-24-11-28-112640_01_diff.json"
+    del db_diff.db1
+    del db_diff.db2
+    
+    # db_diff.db2=None
+    diff_file_path = file_dir + "my_test_1129_diff.json"
     with open(diff_file_path, "w", encoding="UTF-8") as f:
         f.write(json.dumps(db_diff,indent=4,default=lambda x: x.__dict__))
     
