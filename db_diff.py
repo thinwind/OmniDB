@@ -67,8 +67,8 @@ class DatabaseDiff:
         self.procedures_only_in_db2 = []
         procedures1 = self.db1["procedures"]
         procedures2 = self.db2["procedures"]
-        procedures1.sort(key=lambda x: x["name"])
-        procedures2.sort(key=lambda x: x["name"])
+        procedures1.sort(key=lambda x: x["name"].upper())
+        procedures2.sort(key=lambda x: x["name"].upper())
 
         self.procedures_only_in_db1 = []
         self.procedures_only_in_db2 = []
@@ -96,7 +96,7 @@ class DatabaseDiff:
                     self.common_procedures.append(procedure1["name"])
                 cursor1 += 1
                 cursor2 += 1
-            elif procedure1["name"] < procedure2["name"]:
+            elif procedure1["name"].upper() < procedure2["name"].upper():
                 # 存储过程1有,存储过程2没有
                 self.procedures_only_in_db1.append(procedure1["name"])
                 cursor1 += 1
@@ -121,8 +121,8 @@ class DatabaseDiff:
         self.views_in_both_db = []
         views1 = self.db1["views"]
         views2 = self.db2["views"]
-        views1.sort(key=lambda x: x["v_name"])
-        views2.sort(key=lambda x: x["v_name"])
+        views1.sort(key=lambda x: x["v_name"].upper())
+        views2.sort(key=lambda x: x["v_name"].upper())
 
         self.views_only_in_db1 = []
         self.views_only_in_db2 = []
@@ -148,7 +148,7 @@ class DatabaseDiff:
                     self.common_views.append(view1["v_name"])
                 cursor1 += 1
                 cursor2 += 1
-            elif view1["v_name"] < view2["v_name"]:
+            elif view1["v_name"].upper() < view2["v_name"].upper():
                 # 视图1有,视图2没有
                 self.views_only_in_db1.append(view1["v_name"])
                 cursor1 += 1
@@ -203,14 +203,23 @@ class DatabaseDiff:
                 len(table_diff_info["diff_columns"]) > 0
                 or len(table_diff_info["diff_indices"]) > 0
                 or len(table_diff_info["diff_foreign_keys"]) > 0
-            ):
+            ): 
+                t_diff_info=[]
+                if len(table_diff_info["diff_columns"]) > 0:
+                    t_diff_info.append("Columns")
+                if len(table_diff_info["diff_indices"]) > 0:
+                    t_diff_info.append("Indices")
+                if len(table_diff_info["diff_foreign_keys"]) > 0:
+                    t_diff_info.append("Foreign Keys")
+                
+                table_diff_info["diff_type"] = "/".join(t_diff_info)
                 self.diff_tables.append(table_diff_info)
             else:
                 self.common_tables.append(table_name)
 
     def compare_foreign_keys(self, fks1, fks2):
-        fks1.sort(key=lambda x: x["name"])
-        fks2.sort(key=lambda x: x["name"])
+        fks1.sort(key=lambda x: x["name"].upper())
+        fks2.sort(key=lambda x: x["name"].upper())
         cursor1 = 0
         cursor2 = 0
         diff_fks = []
@@ -230,7 +239,7 @@ class DatabaseDiff:
                 # 一起下移
                 cursor1 += 1
                 cursor2 += 1
-            elif fk1["name"] < fk2["name"]:
+            elif fk1["name"].upper() < fk2["name"].upper():
                 # 外键1有,外键2没有
                 diff_fks.append(
                     {
@@ -284,8 +293,8 @@ class DatabaseDiff:
         return fk1_def
 
     def compare_indices(self, indices1, indices2):
-        indices1.sort(key=lambda x: x["name"])
-        indices2.sort(key=lambda x: x["name"])
+        indices1.sort(key=lambda x: x["name"].upper())
+        indices2.sort(key=lambda x: x["name"].upper())
         cursor1 = 0
         cursor2 = 0
         diff_indices = []
@@ -308,7 +317,7 @@ class DatabaseDiff:
                 # 一起下移
                 cursor1 += 1
                 cursor2 += 1
-            elif index1["name"] < index2["name"]:
+            elif index1["name"].upper() < index2["name"].upper():
                 # 索引1有,索引2没有
                 diff_indices.append(
                     {
@@ -360,8 +369,8 @@ class DatabaseDiff:
         # 比较列
         colums1 = table1["columns"]
         colums2 = table2["columns"]
-        colums1.sort(key=lambda x: x["v_column_name"])
-        colums2.sort(key=lambda x: x["v_column_name"])
+        colums1.sort(key=lambda x: x["v_column_name"].upper())
+        colums2.sort(key=lambda x: x["v_column_name"].upper())
         cursor1 = 0
         cursor2 = 0
         while cursor1 < len(colums1) and cursor2 < len(colums2):
@@ -395,7 +404,7 @@ class DatabaseDiff:
                 # 一起下移
                 cursor1 += 1
                 cursor2 += 1
-            elif colums1[cursor1]["v_column_name"] < colums2[cursor2]["v_column_name"]:
+            elif colums1[cursor1]["v_column_name"].upper() < colums2[cursor2]["v_column_name"].upper():
                 # 表1有,表2没有
                 diff_columns.append(
                     {
@@ -468,8 +477,8 @@ class DatabaseDiff:
         tables1 = self.db1["tables"]
         tables2 = self.db2["tables"]
 
-        db1_table_names = {table["v_name"] for table in tables1}
-        db2_table_names = {table["v_name"] for table in tables2}
+        db1_table_names = {table["v_name"].upper() for table in tables1}
+        db2_table_names = {table["v_name"].upper() for table in tables2}
 
         self.tables_only_in_db1 = list(db1_table_names - db2_table_names)
         self.tables_only_in_db2 = list(db2_table_names - db1_table_names)

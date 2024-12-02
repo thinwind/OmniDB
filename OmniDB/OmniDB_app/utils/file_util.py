@@ -13,6 +13,11 @@ name_seq = 0
 
 def save_txt_file(path, name, ext, content, add_postfix=True):
     global name_seq
+    # 如果path不存在，创建path
+    import os
+    if not os.path.exists(path):
+        os.makedirs(path)
+    
     if add_postfix:
         name = (
             name
